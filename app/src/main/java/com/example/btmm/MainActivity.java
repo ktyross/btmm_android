@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private ViewPagerAdapter viewPagerAdapter;
     private ViewPager viewPager;
     private TabLayout tabLayout;
+    private Page1 graphFragment = new Page1();
+    private Page3 bleFragment = new Page3();
 
     private boolean generateDataWithoutBleConnection = true;
     BluetoothDevice bleDevice;
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.i("GattChar", "Value changed");
-            addNewData(0);
+            graphFragment.newData(0);
         }
 /*
         @Override
@@ -166,9 +168,9 @@ public class MainActivity extends AppCompatActivity {
         //setTitle("ECS193 bt_mm");
 
         // add the fragments
-        viewPagerAdapter.add(new Page3(),"Bluetooth");
-        viewPagerAdapter.add(new Page2("No Data Yet"),"Raw");
-        viewPagerAdapter.add(new Page1(),"Graph");
+        viewPagerAdapter.add(bleFragment,"Bluetooth");
+        //viewPagerAdapter.add(new Page2("No Data Yet"),"Raw");
+        viewPagerAdapter.add(graphFragment,"Graph");
 
         //Set the adapter
         viewPager.setAdapter(viewPagerAdapter);
@@ -188,18 +190,14 @@ public class MainActivity extends AppCompatActivity {
             final Runnable r = new Runnable() {
                 @Override
                 public void run() {
-                    addNewData((float)(Math.floor((Math.random() * 30) + 0)));
+                    graphFragment.newData((float)(Math.floor((Math.random() * 40) + 0)));
                     handler.postDelayed(this, 200);
                 }
             };
-            handler.postDelayed(r, 200);
+            handler.postDelayed(r, 100);
         }
     }
-    public void addNewData(float val) {
-        Log.i("Main","Called");
-        Page2.updateVal(val);
-        Page1.addEntry(val);
-    }
+
     public void connectToDevice(BluetoothDevice bleDevice) {
         Log.i("Main","Attempting to connect");
         checkPermission(Manifest.permission.BLUETOOTH_CONNECT, 1);
@@ -223,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
     public void decodeData(byte[] data) {
         Log.i("BeforeDecodeValue: ", String.valueOf(data[0]));
         Log.i("x",String.valueOf(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat()));
-        addNewData(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat());
+        graphFragment.newData(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat());
     }
     public void checkPermission(String permission, int reqCode) {
         if (ContextCompat.checkSelfPermission(getApplicationContext(), permission) == PackageManager.PERMISSION_DENIED) {

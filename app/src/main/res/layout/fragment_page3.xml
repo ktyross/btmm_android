@@ -8,7 +8,7 @@
     android:paddingTop="16dp"
     android:paddingRight="16dp"
     android:paddingBottom="16dp"
-    tools:context="com.proj.viewpager.Page3">
+    tools:context="com.example.btmm.Page3">
 
     <ScrollView
         android:id="@+id/scrollView"

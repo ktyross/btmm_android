@@ -4,8 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toolbar;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.tabs.TabLayout;
 import android.os.Bundle;
 
@@ -16,6 +18,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
 import android.Manifest;
 import android.content.Intent;
@@ -60,10 +64,12 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.Chart;
 import com.example.btmm.R;
 
-public class Page1 extends Fragment implements OnChartValueSelectedListener {
+public class Page1 extends Fragment implements OnChartValueSelectedListener, View.OnClickListener {
 
     private static final int PERMISSION_STORAGE = 0;
     private static LineChart chart;
+    private static TextView val;
+    private static SwitchMaterial graphSwitch;
 
     public Page1(){
         //required empty public constructor.
@@ -79,6 +85,27 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i("Page1", "CreateView");
         View rootView = inflater.inflate(R.layout.fragment_page1,container,false);
+        this.val = (TextView) rootView.findViewById(R.id.raw);
+        this.graphSwitch = (SwitchMaterial) rootView.findViewById(R.id.toggleGraph);
+        rootView.findViewById(R.id.clearGraph).setOnClickListener(this);
+        rootView.findViewById(R.id.saveGraph).setOnClickListener(this);
+        rootView.findViewById(R.id.saveData).setOnClickListener(this);
+
+        ChipGroup modeSelector = rootView.findViewById(R.id.modeSelector);
+        modeSelector.setOnCheckedChangeListener(new ChipGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(ChipGroup chipGroup, int i) {
+
+                Chip chip = chipGroup.findViewById(i);
+                if (chip != null)
+                    if (chart != null) {
+                        clearData();
+                        Toast.makeText(getContext(), "Switched to " + chip.getText(), Toast.LENGTH_SHORT).show();
+                    }
+            }
+        });
+        Chip volt = rootView.findViewById(R.id.voltage);
+        volt.setChecked(true);
         //getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
         //        WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //getActivity().setContentView(R.layout.fragment_page1);
@@ -135,6 +162,27 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener {
         rightAxis.setEnabled(false);
 
         return rootView;
+    }
+
+    protected void clearData() {
+        LineData data = chart.getData();
+        chart.clearValues();
+        chart.notifyDataSetChanged();
+        chart.getDescription().setText("");
+        data.notifyDataChanged();
+    }
+    protected void newData(float newVal) {
+        if (graphSwitch.isChecked()) {
+            val.setText("");
+            addEntry(newVal);
+        }
+        else {
+            updateRaw(newVal);
+        }
+    }
+    protected static void updateRaw(float newVal) {
+        val.setText(String.valueOf(Math.round(newVal*1000.0)/1000.0));
+        Log.i("Page1","x");
     }
 
     protected static void addEntry(float val) {
@@ -265,8 +313,9 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener {
 //    }
 
     protected void saveToGallery(Chart chart, String name) {
-        if (chart.saveToGallery(name + "_" + System.currentTimeMillis(), 70))
-            Toast.makeText(getActivity().getApplicationContext(), "Saving SUCCESSFUL!",
+        //if (chart.saveToPath(name + "_" + System.currentTimeMillis(), ""))
+        if (chart.saveToGallery(name + "_" + System.currentTimeMillis(), 100))
+            Toast.makeText(getActivity().getApplicationContext(), "Saving to gallery SUCCESSFUL!",
                     Toast.LENGTH_SHORT).show();
         else
             Toast.makeText(getActivity().getApplicationContext(), "Saving FAILED!", Toast.LENGTH_SHORT)
@@ -306,6 +355,34 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener {
 
         if (thread != null) {
             thread.interrupt();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()) {
+            case R.id.clearGraph:
+                clearData();
+                Toast.makeText(getActivity().getApplicationContext(), "Chart cleared!", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.saveGraph:
+                graphSwitch.setChecked(false);
+                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    saveToGallery(chart, "graph");
+                }
+                else {
+                    requestStoragePermission(chart);
+                }
+                break;
+            case R.id.saveData:
+                break;
+            //case R.id.rawData:
+                //Intent intent = new Intent(getActivity(), Activity_BTLE_Services.class);
+                //intent.putExtra(Activity_BTLE_Services.EXTRA_NAME, name);
+                //intent.putExtra(Activity_BTLE_Services.EXTRA_ADDRESS, address);
+                //startActivityForResult(intent, 2);
+            default:
+                throw new RuntimeException("Button error");
         }
     }
 }

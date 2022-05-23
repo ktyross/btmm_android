@@ -1,14 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    tools:context="com.proj.viewpager.Page3"
+    android:layout_height="match_parent"
+    tools:context="com.example.btmm.Page1">
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="100dp" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/toggleGraph"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="top|end"
+        android:text="Graph Toggle" />
+
+    <TextView
+        android:id="@+id/raw"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="start|top"
+        android:text="NoRawDataYet"
+        android:textSize="30sp" />
+
+    <Button
+        android:id="@+id/saveGraph"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|end"
+        android:text="Save Graph" />
+
+    <Button
+        android:id="@+id/saveData"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="50dp"
+        android:text="Save Data" />
+
+    <Button
+        android:id="@+id/clearGraph"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|start"
+        android:text="Clear Graph" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/modeSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="50dp"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/voltage"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxHeight="50dp"
+            android:text="Voltage" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/current"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxHeight="50dp"
+            android:text="Current" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/resistance"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxHeight="50dp"
+            android:text="Resistance" />
+
+    </com.google.android.material.chip.ChipGroup>
 
 </FrameLayout>
 
