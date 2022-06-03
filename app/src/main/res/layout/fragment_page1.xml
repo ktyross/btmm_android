@@ -17,14 +17,14 @@
         android:id="@+id/toggleGraph"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        android:layout_gravity="top|end"
+        android:layout_gravity="start|top"
         android:text="Graph Toggle" />
 
     <TextView
         android:id="@+id/raw"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        android:layout_gravity="start|top"
+        android:layout_gravity="top|end"
         android:text="NoRawDataYet"
         android:textSize="30sp" />
 
@@ -56,6 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_marginBottom="50dp"
+        app:selectionRequired="true"
         app:singleSelection="true">
 
         <com.google.android.material.chip.Chip

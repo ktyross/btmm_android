@@ -55,7 +55,6 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
 
             mBTLE_Service.connect(address);
             Utils.toast(getApplicationContext(), "Connected to BLE device");
-            Log.i("ACT","CONN");
 
             // Automatically connects to the device upon successful start-up initialization.
 //            mBTLeService.connect(mBTLeDeviceAddress);

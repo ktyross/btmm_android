@@ -1,9 +1,14 @@
 package com.example.btmm;
 
+import static java.lang.Math.abs;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
@@ -64,12 +69,21 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.Chart;
 import com.example.btmm.R;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class Page1 extends Fragment implements OnChartValueSelectedListener, View.OnClickListener {
 
     private static final int PERMISSION_STORAGE = 0;
     private static LineChart chart;
-    private static TextView val;
-    private static SwitchMaterial graphSwitch;
+    private TextView rawDataText;
+    private SwitchMaterial graphSwitch;
+    private String mode;
 
     public Page1(){
         //required empty public constructor.
@@ -83,10 +97,9 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.i("Page1", "CreateView");
         View rootView = inflater.inflate(R.layout.fragment_page1,container,false);
-        this.val = (TextView) rootView.findViewById(R.id.raw);
-        this.graphSwitch = (SwitchMaterial) rootView.findViewById(R.id.toggleGraph);
+        rawDataText = (TextView) rootView.findViewById(R.id.raw);
+        graphSwitch = (SwitchMaterial) rootView.findViewById(R.id.toggleGraph);
         rootView.findViewById(R.id.clearGraph).setOnClickListener(this);
         rootView.findViewById(R.id.saveGraph).setOnClickListener(this);
         rootView.findViewById(R.id.saveData).setOnClickListener(this);
@@ -100,12 +113,14 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
                 if (chip != null)
                     if (chart != null) {
                         clearData();
-                        Toast.makeText(getContext(), "Switched to " + chip.getText(), Toast.LENGTH_SHORT).show();
+                        mode = String.valueOf(chip.getText());
+                        Toast.makeText(getContext(), "Switched to " + mode, Toast.LENGTH_SHORT).show();
                     }
             }
         });
         Chip volt = rootView.findViewById(R.id.voltage);
         volt.setChecked(true);
+        mode = "Voltage";
         //getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
         //        WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //getActivity().setContentView(R.layout.fragment_page1);
@@ -117,7 +132,9 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
         // enable description text
         chart.getDescription().setEnabled(true);
+        chart.getDescription().setTextColor(Color.WHITE);
         chart.getDescription().setText("");
+        chart.getDescription().setTextSize(100);
 
         // enable touch gestures
         chart.setTouchEnabled(true);
@@ -125,6 +142,7 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
         // enable scaling and dragging
         chart.setDragEnabled(true);
         chart.setScaleEnabled(true);
+        chart.setPinchZoom(false);
         chart.setDrawGridBackground(false);
 
         // if disabled, scaling can be done on x- and y-axis separately
@@ -132,7 +150,11 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
         // set an alternative background color
         chart.setBackgroundColor(Color.LTGRAY);
-
+        if (getContext() != null) {
+            if ((getContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) {
+                chart.setBackgroundColor(Color.DKGRAY);
+            }
+        }
         LineData data = new LineData();
         data.setValueTextColor(Color.WHITE);
 
@@ -154,8 +176,8 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setTextColor(Color.WHITE);
-        leftAxis.setAxisMaximum(100f);
-        leftAxis.setAxisMinimum(0f);
+        //leftAxis.setAxisMaximum(50f);
+        //leftAxis.setAxisMinimum(0f);
         leftAxis.setDrawGridLines(true);
 
         YAxis rightAxis = chart.getAxisRight();
@@ -169,20 +191,36 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
         chart.clearValues();
         chart.notifyDataSetChanged();
         chart.getDescription().setText("");
+
+        ILineDataSet set = createSet();
+        data.addDataSet(set);
         data.notifyDataChanged();
     }
     protected void newData(float newVal) {
         if (graphSwitch.isChecked()) {
-            val.setText("");
             addEntry(newVal);
         }
-        else {
-            updateRaw(newVal);
-        }
+        updateRaw(newVal);
     }
-    protected static void updateRaw(float newVal) {
-        val.setText(String.valueOf(Math.round(newVal*1000.0)/1000.0));
-        Log.i("Page1","x");
+    protected void updateRaw(float newVal) {
+        //val.setText(String.valueOf(Math.round(newVal*1000.0)/1000.0));
+        String raw;
+        switch (mode) {
+            case "Voltage":
+                raw = String.valueOf(newVal) + " V";
+                break;
+            case "Current":
+                raw = String.valueOf(newVal) + " A";
+                break;
+            case "Resistance":
+                raw = String.valueOf(newVal) + " Ω";
+                break;
+            default:
+                raw = "Error";
+                Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+
+        }
+        rawDataText.setText(raw);
     }
 
     protected static void addEntry(float val) {
@@ -207,15 +245,69 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
             // limit the number of visible entries
             chart.setVisibleXRangeMaximum(50);
-            // chart.setVisibleYRange(30, AxisDependency.LEFT);
+            //chart.setVisibleYRange(50, 0,AxisDependency.LEFT);
 
             // move to the latest entry
-            chart.moveViewToX(data.getEntryCount());
+            chart.moveViewToX(data.getXMax());
+            //chart.moveViewTo(data.getXMax(), data.getYMax(), AxisDependency.LEFT);
 
             // this automatically refreshes the chart (calls invalidate())
-            // chart.moveViewTo(data.getXValCount()-7, 55f,
-            // AxisDependency.LEFT);
+            //chart.moveViewTo(data.getXMax()-50, 55f, AxisDependency.LEFT);
         }
+    }
+
+    public void decodeData(byte[] data) {
+        int index=0;
+        switch (mode) {
+            case "Voltage":
+                index = 0;
+                break;
+            case "Current":
+                index = 2;
+                break;
+            case "Resistance":
+                index = 4;
+                break;
+            default:
+                Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+        }
+//        Log.w("BeforeDecodeValue", String.valueOf(data[0]) + " " + String.valueOf(data[1]));
+        /*
+        byte[] data = new byte[36];
+        //... populate byte array...
+
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+
+        int first = buffer.getInt();
+        float second = buffer.getFloat();
+         */
+
+        //int asInt = (data[index] & 0xFF) | ((data[index+1] & 0xFF) << 8);
+        //float num = Float.intBitsToFloat(asInt);
+
+        //float num = Float.intBitsToFloat(data[index] ^ data[index+1]<<8);
+
+        //DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
+        //float f = dis.readFloat();
+
+        //int combined = (data[index+1] << 8) | data[index];
+        //float num = Float.intBitsToFloat(combined);
+
+        //int low=data[index] & 0xff;
+        //int high=(data[index+1] & 0xff)<< 8;
+        //float num = (low | high);
+
+        int low=data[index] & 0xff;
+        int high=data[index+1] << 8;
+        float num = (high | low);
+        if (!mode.equals("Resistance")) {
+            num = num/1000;
+        }
+//        Log.w("AfterDecode",String.valueOf(num));
+        if (!String.valueOf(num).equals("NaN")) {
+            newData(abs(num));
+        }
+        //newData(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat());
     }
 
     private static LineDataSet createSet() {
@@ -256,7 +348,7 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
             public void run() {
                 for (int i = 0; i < 1000; i++) {
 
-                    // Don't generate garbage runnables inside the loop.
+                    // Don't generate garbage runnable inside the loop.
                     getActivity().runOnUiThread(runnable);
 
                     try {
@@ -314,11 +406,11 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
     protected void saveToGallery(Chart chart, String name) {
         //if (chart.saveToPath(name + "_" + System.currentTimeMillis(), ""))
-        if (chart.saveToGallery(name + "_" + System.currentTimeMillis(), 100))
-            Toast.makeText(getActivity().getApplicationContext(), "Saving to gallery SUCCESSFUL!",
+        if (chart.saveToGallery(name + "_" + System.currentTimeMillis(), "ChartScreenshots","Screenshot of chart", Bitmap.CompressFormat.PNG, 100))
+            Toast.makeText(getContext(), "Saving to gallery SUCCESSFUL!",
                     Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(getActivity().getApplicationContext(), "Saving FAILED!", Toast.LENGTH_SHORT)
+            Toast.makeText(getContext(), "Saving FAILED!", Toast.LENGTH_SHORT)
                     .show();
     }
 
@@ -341,12 +433,10 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
     @Override
     public void onValueSelected(Entry e, Highlight h) {
         chart.getDescription().setText(e.toString());
-        Log.i("Entry selected", e.toString());
     }
 
     @Override
     public void onNothingSelected() {
-        Log.i("Nothing selected", "Nothing selected.");
     }
 
     @Override
@@ -375,6 +465,13 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
                 }
                 break;
             case R.id.saveData:
+                graphSwitch.setChecked(false);
+                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    saveData();
+                }
+                else {
+                    requestStoragePermission(chart);
+                }
                 break;
             //case R.id.rawData:
                 //Intent intent = new Intent(getActivity(), Activity_BTLE_Services.class);
@@ -383,6 +480,28 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
                 //startActivityForResult(intent, 2);
             default:
                 throw new RuntimeException("Button error");
+        }
+    }
+    public void saveData() {
+        File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        String pathname = folder.getPath() + "/data"+ "_" + System.currentTimeMillis()+".txt";
+        try {
+            LineData data = chart.getData();
+            ILineDataSet set = data.getDataSetByIndex(0);
+            if (data.getEntryCount() > 0) {
+                File file = new File(pathname);
+                Writer writer = new BufferedWriter(new FileWriter(file));
+                for (int i = 0; i < set.getEntryCount(); i++) {
+                    writer.write(String.valueOf(set.getEntryForIndex(i).getY()));
+                    writer.write(System.getProperty( "line.separator" ));
+                }
+                writer.close();
+                Toast.makeText(getActivity().getApplicationContext(), "Saved data file", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity().getApplicationContext(), "No data to save", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e("File error: ", e.getMessage());
         }
     }
 }
