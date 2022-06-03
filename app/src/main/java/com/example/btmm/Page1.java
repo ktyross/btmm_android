@@ -121,11 +121,6 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
         Chip volt = rootView.findViewById(R.id.voltage);
         volt.setChecked(true);
         mode = "Voltage";
-        //getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        //        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getActivity().setContentView(R.layout.fragment_page1);
-
-        //getActivity().setTitle("RealtimeLineChartActivity");
 
         chart = rootView.findViewById(R.id.chart1);
         chart.setOnChartValueSelectedListener(this);
@@ -271,31 +266,6 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
             default:
                 Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
         }
-//        Log.w("BeforeDecodeValue", String.valueOf(data[0]) + " " + String.valueOf(data[1]));
-        /*
-        byte[] data = new byte[36];
-        //... populate byte array...
-
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-
-        int first = buffer.getInt();
-        float second = buffer.getFloat();
-         */
-
-        //int asInt = (data[index] & 0xFF) | ((data[index+1] & 0xFF) << 8);
-        //float num = Float.intBitsToFloat(asInt);
-
-        //float num = Float.intBitsToFloat(data[index] ^ data[index+1]<<8);
-
-        //DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
-        //float f = dis.readFloat();
-
-        //int combined = (data[index+1] << 8) | data[index];
-        //float num = Float.intBitsToFloat(combined);
-
-        //int low=data[index] & 0xff;
-        //int high=(data[index+1] & 0xff)<< 8;
-        //float num = (low | high);
 
         int low=data[index] & 0xff;
         int high=data[index+1] << 8;
@@ -303,11 +273,9 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
         if (!mode.equals("Resistance")) {
             num = num/1000;
         }
-//        Log.w("AfterDecode",String.valueOf(num));
         if (!String.valueOf(num).equals("NaN")) {
             newData(abs(num));
         }
-        //newData(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).getFloat());
     }
 
     private static LineDataSet createSet() {
@@ -362,47 +330,6 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
 
         thread.start();
     }
-
-    //@Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getActivity().getMenuInflater().inflate(R.menu.realtime, menu);
-//        return true;
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//
-//        switch (item.getItemId()) {
-//            case R.id.viewGithub: {
-//                Intent i = new Intent(Intent.ACTION_VIEW);
-//                i.setData(Uri.parse("https://github.com/PhilJay/MPAndroidChart/blob/master/MPChartExample/src/com/xxmassdeveloper/mpchartexample/RealtimeLineChartActivity.java"));
-//               startActivity(i);
-//                break;
-//            }
-//            case R.id.actionAdd: {
-//                addEntry(0);
-//                break;
-//            }
-//            case R.id.actionClear: {
-//                chart.clearValues();
-//                Toast.makeText(getActivity().getApplicationContext(), "Chart cleared!", Toast.LENGTH_SHORT).show();
-//                break;
-//            }
-//            case R.id.actionFeedMultiple: {
-//                feedMultiple();
-//                break;
-//            }
-//            case R.id.actionSave: {
-//                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-//                    saveToGallery(chart, "RealtimeLineChartActivity");
-//                } else {
-//                    requestStoragePermission(chart);
-//                }
-//                break;
-//            }
-//        }
-//        return true;
-//    }
 
     protected void saveToGallery(Chart chart, String name) {
         //if (chart.saveToPath(name + "_" + System.currentTimeMillis(), ""))
@@ -473,11 +400,6 @@ public class Page1 extends Fragment implements OnChartValueSelectedListener, Vie
                     requestStoragePermission(chart);
                 }
                 break;
-            //case R.id.rawData:
-                //Intent intent = new Intent(getActivity(), Activity_BTLE_Services.class);
-                //intent.putExtra(Activity_BTLE_Services.EXTRA_NAME, name);
-                //intent.putExtra(Activity_BTLE_Services.EXTRA_ADDRESS, address);
-                //startActivityForResult(intent, 2);
             default:
                 throw new RuntimeException("Button error");
         }

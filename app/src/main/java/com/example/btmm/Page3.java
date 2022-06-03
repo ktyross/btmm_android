@@ -75,11 +75,9 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
             //}
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                //bleFragment.setConnectionMessage("Connected to: ", gatt.getDevice().getName());
                 ContextCompat.getMainExecutor(getContext()).execute(() -> {Toast.makeText(getContext(),"Connected to device", Toast.LENGTH_LONG).show();});
                 bleGatt = gatt;
                 checkPermission(Manifest.permission.BLUETOOTH_CONNECT, 1);
-                //android.os.SystemClock.sleep(60000);
                 // Attempts to discover services after successful connection.
                 gatt.discoverServices();
             }
@@ -103,14 +101,9 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
                 List<BluetoothGattService> gattServices = gatt.getServices();
                 if (gattServices.size() == 0) {
                     checkPermission(Manifest.permission.BLUETOOTH_CONNECT, 1);
-                    //android.os.SystemClock.sleep(10000);
                     gatt.discoverServices();
                     //gattServices = gatt.getServices();
                 }
-                //for (BluetoothGattService gattService : gattServices) {
-                //    String serviceUUID = gattService.getUuid().toString();
-                //    Log.i("onServicesDiscovered", "Service uuid "+serviceUUID);
-                //}
                 for (BluetoothGattService service : gatt.getServices()) {
                     for (BluetoothGattCharacteristic mcharacteristic : service.getCharacteristics()) {
                         if (containsNotifyProperty(mcharacteristic)) {
@@ -121,13 +114,6 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
                                 gatt.writeDescriptor(descriptor);
                                 break;
                             }
-
-                           // gatt.readCharacteristic(mcharacteristic);
-                            //Log.i("HasNotify", "Value:" +gatt.readCharacteristic(mcharacteristic));
-                            //for (int i =0; i< 1000; i++) {
-                            //    addNewData((float)(Math.random() * 40) + 30f);
-                            //    android.os.SystemClock.sleep(200);
-                            //}
                         }
                     }
                 }
@@ -135,35 +121,6 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
             }
         }
 
-/*
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt,
-                                         BluetoothGattCharacteristic characteristic,
-                                         int status) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                // update UI
-                                checkPermission(Manifest.permission.BLUETOOTH_CONNECT, 1);
-                                //Log.i("CharRead","Read: "+gatt.readCharacteristic(characteristic));
-                                ((MainActivity)getActivity()).decodeData(characteristic.getValue());
-                            }
-                        });
-                    }
-                    gatt.readCharacteristic(characteristic);
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-*/
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             Log.i("GattChar", "Value changed");
@@ -176,13 +133,6 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
                 }
             });
         }
-/*
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt,
-                                          BluetoothGattCharacteristic characteristic, int status) {
-
-        }
-*/
     };
 
     public Page3(){
@@ -265,19 +215,9 @@ public class Page3 extends Fragment implements View.OnClickListener, AdapterView
         String name = mBTDevicesArrayList.get(position).getName();
         String address = mBTDevicesArrayList.get(position).getAddress();
 
-
-        //Intent intent = new Intent(getActivity(), Activity_BTLE_Services.class);
-        //intent.putExtra(Activity_BTLE_Services.EXTRA_NAME, name);
-        //intent.putExtra(Activity_BTLE_Services.EXTRA_ADDRESS, address);
-        //startActivityForResult(intent, BTLE_SERVICES);
-
-
         setConnectionMessage("Attempting to connect to: ", mBTDevicesArrayList.get(position).getName());
 
         connectToDevice(mBTDevicesArrayList.get(position).getBluetoothDevice());
-        //((MainActivity)getActivity()).addNewData((float)(Math.random() * 40) + 30f);
-        //mBTDevicesArrayList.clear();
-        //mBTDevicesHashMap.clear();
 
         adapter.notifyDataSetChanged();
         setConnectionMessage("Connected to: ", mBTDevicesArrayList.get(position).getName());
